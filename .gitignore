@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.expo/
+ios/
+android/
+*.ipa
+Payload/
+build/
+xcodebuild.log

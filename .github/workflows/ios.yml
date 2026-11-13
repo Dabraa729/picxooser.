@@ -1,0 +1,70 @@
+# Buduje aplikację na Macu w chmurze GitHuba i wystawia niepodpisany plik .ipa.
+# Plik podpisujesz potem własnym Apple ID (np. programem Impactor) przy instalacji na iPhonie.
+name: iOS (niepodpisany IPA)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-26   # Expo SDK 58 wymaga Xcode 26.4 lub nowszego
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Zależności
+        run: npm ci
+
+      - name: Testy logiki i typy
+        run: |
+          npm test
+          npx tsc --noEmit
+
+      - name: Wersja Xcode
+        run: xcodebuild -version
+
+      - name: Wygenerowanie projektu iOS
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: CocoaPods
+        run: cd ios && pod install
+
+      - name: Kompilacja bez podpisu
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/PicXooser.xcworkspace \
+            -scheme PicXooser \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            > xcodebuild.log 2>&1 || { tail -n 300 xcodebuild.log; exit 1; }
+          tail -n 5 xcodebuild.log
+
+      - name: Spakowanie .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/PicXooser.app Payload/
+          zip -qry PicXooser.ipa Payload
+          ls -lh PicXooser.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PicXooser-ipa
+          path: PicXooser.ipa
+
+      - name: Log kompilacji (gdy coś się nie uda)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log

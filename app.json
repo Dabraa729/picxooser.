@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "PicXooser",
+    "slug": "picxooser",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "bundleIdentifier": "com.picxooser.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "PicXooser przegląda bibliotekę, żeby znaleźć duplikaty zdjęć i filmów.",
+          "savePhotosPermission": "PicXooser usuwa wybrane duplikaty z biblioteki.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713"
+        }
+      ],
+      "expo-video"
+    ]
+  }
+}
